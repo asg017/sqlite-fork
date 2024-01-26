@@ -624,7 +624,7 @@ void sqlite3Pragma(
     if( sqlite3Tolower(zLeft[0])=='p' ){
       sqlite3VdbeAddOp2(v, OP_Pagecount, iDb, iReg);
     }else{
-      if( zRight && sqlite3DecOrHexToI64(zRight,&x)==0 ){
+      if( zRight && sqlite3DecOrHexOrOctOrBinToI64(zRight,&x)==0 ){
         if( x<0 ) x = 0;
         else if( x>0xfffffffe ) x = 0xfffffffe;
       }else{
@@ -737,7 +737,7 @@ void sqlite3Pragma(
     Pager *pPager = sqlite3BtreePager(pDb->pBt);
     i64 iLimit = -2;
     if( zRight ){
-      sqlite3DecOrHexToI64(zRight, &iLimit);
+      sqlite3DecOrHexOrOctOrBinToI64(zRight, &iLimit);
       if( iLimit<-1 ) iLimit = -1;
     }
     iLimit = sqlite3PagerJournalSizeLimit(pPager, iLimit);
@@ -910,7 +910,7 @@ void sqlite3Pragma(
     assert( sqlite3SchemaMutexHeld(db, iDb, 0) );
     if( zRight ){
       int ii;
-      sqlite3DecOrHexToI64(zRight, &sz);
+      sqlite3DecOrHexOrOctOrBinToI64(zRight, &sz);
       if( sz<0 ) sz = sqlite3GlobalConfig.szMmap;
       if( pId2->n==0 ) db->szMmap = sz;
       for(ii=db->nDb-1; ii>=0; ii--){
@@ -2503,7 +2503,7 @@ void sqlite3Pragma(
   */
   case PragTyp_SOFT_HEAP_LIMIT: {
     sqlite3_int64 N;
-    if( zRight && sqlite3DecOrHexToI64(zRight, &N)==SQLITE_OK ){
+    if( zRight && sqlite3DecOrHexOrOctOrBinToI64(zRight, &N)==SQLITE_OK ){
       sqlite3_soft_heap_limit64(N);
     }
     returnSingleInt(v, sqlite3_soft_heap_limit64(-1));
@@ -2523,7 +2523,7 @@ void sqlite3Pragma(
   */
   case PragTyp_HARD_HEAP_LIMIT: {
     sqlite3_int64 N;
-    if( zRight && sqlite3DecOrHexToI64(zRight, &N)==SQLITE_OK ){
+    if( zRight && sqlite3DecOrHexOrOctOrBinToI64(zRight, &N)==SQLITE_OK ){
       sqlite3_int64 iPrior = sqlite3_hard_heap_limit64(-1);
       if( N>0 && (iPrior==0 || iPrior>N) ) sqlite3_hard_heap_limit64(N);
     }
@@ -2541,7 +2541,7 @@ void sqlite3Pragma(
   case PragTyp_THREADS: {
     sqlite3_int64 N;
     if( zRight
-     && sqlite3DecOrHexToI64(zRight, &N)==SQLITE_OK
+     && sqlite3DecOrHexOrOctOrBinToI64(zRight, &N)==SQLITE_OK
      && N>=0
     ){
       sqlite3_limit(db, SQLITE_LIMIT_WORKER_THREADS, (int)(N&0x7fffffff));
@@ -2560,7 +2560,7 @@ void sqlite3Pragma(
   case PragTyp_ANALYSIS_LIMIT: {
     sqlite3_int64 N;
     if( zRight
-     && sqlite3DecOrHexToI64(zRight, &N)==SQLITE_OK /* IMP: R-40975-20399 */
+     && sqlite3DecOrHexOrOctOrBinToI64(zRight, &N)==SQLITE_OK /* IMP: R-40975-20399 */
      && N>=0
     ){
       db->nAnalysisLimit = (int)(N&0x7fffffff);

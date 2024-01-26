@@ -2929,7 +2929,7 @@ static void jsonReturnFromBlob(
       }
       z = sqlite3DbStrNDup(db, (const char*)&pParse->aBlob[i+n], (int)sz);
       if( z==0 ) goto returnfromblob_oom;
-      rc = sqlite3DecOrHexToI64(z, &iRes);
+      rc = sqlite3DecOrHexOrOctOrBinToI64(z, &iRes);
       sqlite3DbFree(db, z);
       if( rc==0 ){
         sqlite3_result_int64(pCtx, bNeg ? -iRes : iRes);
