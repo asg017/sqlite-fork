@@ -957,8 +957,7 @@ int sqlite3GetInt32(const char *zNum, int *pValue){
     u32 u = 0;
     zNum += 2;
     while( zNum[0]=='0' ) zNum++;
-    for(i=0; i<8 && sqlite3Isbdigit(zNum[i]) || zNum[i] == '_'; i++){
-      if(zNum[i] == '_') continue;
+    for(i=0; i<8 && sqlite3Isbdigit(zNum[i]); i++){
       u = u*2 + sqlite3HexToInt(zNum[i]);
     }
     if( (u&0x80000000)==0 && sqlite3Isxdigit(zNum[i])==0 ){
