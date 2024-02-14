@@ -441,6 +441,18 @@ int sqlite3GetToken(const unsigned char *z, int *tokenType){
         return i;
       }
 #endif
+#ifndef SQLITE_OMIT_BINARY_INTEGER
+      if( z[0]=='0' && (z[1]=='b' || z[1]=='B') && sqlite3Isbdigit(z[2]) ){
+        for(i=3; sqlite3Isbdigit(z[i]); i++){}
+        return i;
+      }
+#endif
+#ifndef SQLITE_OMIT_OCTAL_INTEGER
+      if( z[0]=='0' && (z[1]=='o' || z[1]=='O') && sqlite3Isodigit(z[2]) ){
+        for(i=3; sqlite3Isodigit(z[i]); i++){}
+        return i;
+      }
+#endif
       for(i=0; sqlite3Isdigit(z[i]); i++){}
 #ifndef SQLITE_OMIT_FLOATING_POINT
       if( z[i]=='.' ){

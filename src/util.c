@@ -858,7 +858,7 @@ int sqlite3Atoi64(const char *zNum, i64 *pNum, int length, u8 enc){
 **     2    Integer too large for a 64-bit signed integer or is malformed
 **     3    Special case of 9223372036854775808
 */
-int sqlite3DecOrHexToI64(const char *z, i64 *pOut){
+int sqlite3DecOrHexOrOctOrBinToI64(const char *z, i64 *pOut){
 #ifndef SQLITE_OMIT_HEX_INTEGER
   if( z[0]=='0'
    && (z[1]=='x' || z[1]=='X')
@@ -873,8 +873,38 @@ int sqlite3DecOrHexToI64(const char *z, i64 *pOut){
     if( k-i>16 ) return 2;
     if( z[k]!=0 ) return 1;
     return 0;
-  }else
+  }
 #endif /* SQLITE_OMIT_HEX_INTEGER */
+#ifndef SQLITE_OMIT_BINARY_INTEGER
+  if(z[0]=='0' && (z[1]=='b' || z[1]=='B')) {
+    u64 u = 0;
+    int i, k;
+    for(i=2; z[i]=='0'; i++){}
+    for(k=i; sqlite3Isbdigit(z[k]); k++){
+      u = u*2 + sqlite3HexToInt(z[k]);
+    }
+    memcpy(pOut, &u, 8);
+    if( k-i>64 ) return 2;
+    if( z[k]!=0 ) return 1;
+    return 0;
+
+  }
+#endif /* SQLITE_OMIT_BINARY_INTEGER */
+  #ifndef SQLITE_OMIT_OCTAL_INTEGER
+  if(z[0]=='0' && (z[1]=='o' || z[1]=='O')) {
+    u64 u = 0;
+    int i, k;
+    for(i=2; z[i]=='0'; i++){}
+    for(k=i; sqlite3Isodigit(z[k]); k++){
+      u = u*8 + sqlite3HexToInt(z[k]);
+    }
+    memcpy(pOut, &u, 8);
+    if( k-i>22 ) return 2;
+    if( z[k]!=0 ) return 1;
+    return 0;
+
+  }else
+#endif /* SQLITE_OMIT_OCTAL_INTEGER */
   {
     int n = (int)(0x3fffffff&strspn(z,"+- \n\t0123456789"));
     if( z[n] ) n++;
@@ -912,6 +942,40 @@ int sqlite3GetInt32(const char *zNum, int *pValue){
     while( zNum[0]=='0' ) zNum++;
     for(i=0; i<8 && sqlite3Isxdigit(zNum[i]); i++){
       u = u*16 + sqlite3HexToInt(zNum[i]);
+    }
+    if( (u&0x80000000)==0 && sqlite3Isxdigit(zNum[i])==0 ){
+      memcpy(pValue, &u, 4);
+      return 1;
+    }else{
+      return 0;
+    }
+  }
+  else if( zNum[0]=='0'
+        && (zNum[1]=='b' || zNum[1]=='B')
+        && sqlite3Isbdigit(zNum[2])
+  ){
+    u32 u = 0;
+    zNum += 2;
+    while( zNum[0]=='0' ) zNum++;
+    for(i=0; i<8 && sqlite3Isbdigit(zNum[i]); i++){
+      u = u*2 + sqlite3HexToInt(zNum[i]);
+    }
+    if( (u&0x80000000)==0 && sqlite3Isxdigit(zNum[i])==0 ){
+      memcpy(pValue, &u, 4);
+      return 1;
+    }else{
+      return 0;
+    }
+  }
+  else if( zNum[0]=='0'
+        && (zNum[1]=='o' || zNum[1]=='O')
+        && sqlite3Isodigit(zNum[2])
+  ){
+    u32 u = 0;
+    zNum += 2;
+    while( zNum[0]=='0' ) zNum++;
+    for(i=0; i<8 && sqlite3Isodigit(zNum[i]); i++){
+      u = u*8 + sqlite3HexToInt(zNum[i]);
     }
     if( (u&0x80000000)==0 && sqlite3Isxdigit(zNum[i])==0 ){
       memcpy(pValue, &u, 4);

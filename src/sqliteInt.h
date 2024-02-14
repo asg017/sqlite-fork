@@ -4599,6 +4599,8 @@ int sqlite3CantopenError(int);
 # define sqlite3JsonId1(x)   (sqlite3IsIdChar(x)&&(x)<'0')
 # define sqlite3JsonId2(x)   sqlite3IsIdChar(x)
 #endif
+# define sqlite3Isbdigit(x)  (x == '1' || x == '0')
+# define sqlite3Isodigit(x)  (x >= '0' && x <= '7')
 int sqlite3IsIdChar(u8);
 
 /*
@@ -5234,7 +5236,7 @@ char sqlite3TableColumnAffinity(const Table*,int);
 char sqlite3ExprAffinity(const Expr *pExpr);
 int sqlite3ExprDataType(const Expr *pExpr);
 int sqlite3Atoi64(const char*, i64*, int, u8);
-int sqlite3DecOrHexToI64(const char*, i64*);
+int sqlite3DecOrHexOrOctOrBinToI64(const char*, i64*);
 void sqlite3ErrorWithMsg(sqlite3*, int, const char*,...);
 void sqlite3Error(sqlite3*,int);
 void sqlite3ErrorClear(sqlite3*);

@@ -3957,7 +3957,7 @@ static void codeInteger(Parse *pParse, Expr *pExpr, int negFlag, int iMem){
     i64 value;
     const char *z = pExpr->u.zToken;
     assert( z!=0 );
-    c = sqlite3DecOrHexToI64(z, &value);
+    c = sqlite3DecOrHexOrOctOrBinToI64(z, &value);
     if( (c==3 && !negFlag) || (c==2) || (negFlag && value==SMALLEST_INT64)){
 #ifdef SQLITE_OMIT_FLOATING_POINT
       sqlite3ErrorMsg(pParse, "oversized integer: %s%#T", negFlag?"-":"",pExpr);
@@ -3965,6 +3965,18 @@ static void codeInteger(Parse *pParse, Expr *pExpr, int negFlag, int iMem){
 #ifndef SQLITE_OMIT_HEX_INTEGER
       if( sqlite3_strnicmp(z,"0x",2)==0 ){
         sqlite3ErrorMsg(pParse, "hex literal too big: %s%#T",
+                        negFlag?"-":"",pExpr);
+      }else
+#endif
+#ifndef SQLITE_OMIT_BINARY_INTEGER
+      if( sqlite3_strnicmp(z,"0b",2)==0 ){
+        sqlite3ErrorMsg(pParse, "binary literal too big: %s%#T",
+                        negFlag?"-":"",pExpr);
+      }else
+#endif
+#ifndef SQLITE_OMIT_OCTAL_INTEGER
+      if( sqlite3_strnicmp(z,"0o",2)==0 ){
+        sqlite3ErrorMsg(pParse, "octal literal too big: %s%#T",
                         negFlag?"-":"",pExpr);
       }else
 #endif
